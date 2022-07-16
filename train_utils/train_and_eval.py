@@ -4,6 +4,16 @@ from torch import nn
 from tqdm import tqdm
 
 import disturtd_utils as utils
+from dice_cofficient_loss import dice_coeff
+
+
+def criterion(inputs, target, dice: bool = True):
+    loss1 = 0
+    if dice:
+        loss1 = dice_coeff(inputs, target)
+    target = target.unsqueeze(1).float()
+    loss2 = nn.BCELoss()(inputs, target)
+    return loss1 * 0.5 + loss2
 
 
 def evaluate(model, data_loader, device, num_classes):
@@ -31,20 +41,11 @@ def evaluate(model, data_loader, device, num_classes):
     assert mask.shape == predict.shape, f"维度不对"
     AUC_ROC = roc_auc_score(mask, predict)
 
-    # fpr, tpr, thresholds = roc_curve(mask, predict)
-    # plt.figure()
-    # plt.plot(fpr, tpr, '-', label='Area Under the Curve (AUC = %0.4f)' % AUC_ROC)
-    # plt.title('ROC curve')
-    # plt.xlabel("FPR (False Positive Rate)")
-    # plt.ylabel("TPR (True Positive Rate)")
-    # plt.legend(loc="lower right")
-    # plt.savefig("ROC.png")
-
     return confmat.compute()[0], confmat.compute()[1], confmat.compute()[2], confmat.compute()[3], confmat.compute()[
         4], AUC_ROC
 
 
-def train_one_epoch(model, optimizer, data_loader, device, epoch,
+def train_one_epoch(model, optimizer, data_loader, device, epoch, scheduler,
                     scaler=None):
     model.train()
     total_loss = 0
@@ -54,9 +55,8 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch,
         image, target = image.to(device), target.to(device)
         with torch.cuda.amp.autocast(enabled=scaler is not None):
             output = model(image)
-            # output的输出通道为1
-            target = target.unsqueeze(1).float()
-            loss = nn.BCELoss()(output, target)
+            # output的输出通道为1,已经使用了sigmoid层，输出的是概率图
+            loss = criterion(output, target, False)
         total_loss += loss.item()
 
         data_loader.set_description(f"Epoch[{epoch}/150]-train,train_loss:{loss.item()}")
@@ -68,7 +68,9 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch,
         else:
             loss.backward()
             optimizer.step()
-
+        
+        # chasedb1
+        scheduler.step()
     return total_loss / len(data_loader)
 
 

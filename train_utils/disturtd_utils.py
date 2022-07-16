@@ -1,7 +1,4 @@
 import torch
-import torch.nn.functional as F
-
-from dice_cofficient_loss import multiclass_dice_coeff, build_target
 
 
 class ConfusionMatrix(object):
@@ -42,36 +39,3 @@ class ConfusionMatrix(object):
         # iu = torch.diag(h) / (h.sum(1) + h.sum(0) - torch.diag(h))
 
         return acc_global, se, sp, F1, pr
-
-
-class DiceCoefficient(object):
-    def __init__(self, num_classes: int = 2, ignore_index: int = -100):
-        self.cumulative_dice = None
-        self.num_classes = num_classes
-        self.ignore_index = ignore_index
-        self.count = 0
-
-    def update(self, pred, target):
-        if self.cumulative_dice is None:
-            self.cumulative_dice = torch.zeros(1, dtype=pred.dtype, device=pred.device)
-        # compute the Dice score, ignoring background
-        pred = F.one_hot(pred.argmax(dim=1), self.num_classes).permute(0, 3, 1, 2).float()
-        dice_target = build_target(target, self.num_classes, self.ignore_index)
-        self.cumulative_dice += multiclass_dice_coeff(pred[:, 1:], dice_target[:, 1:], ignore_index=self.ignore_index)
-        self.count += 1
-
-    @property
-    def value(self):
-        if self.count == 0:
-            return 0
-        else:
-            return self.cumulative_dice / self.count
-
-    def reset(self):
-        self.count = 0
-        if self.cumulative_dice is not None:
-            self.cumulative_dice.zero_()
-
-
-if __name__ == "__main__":
-    print(11)

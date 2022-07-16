@@ -3,13 +3,12 @@ import os
 import torch
 import torch.utils.data
 import wandb
-from torch.optim import lr_scheduler
 
 import compute_mean_std
 import transforms as T
 from datasets import Chasedb1Datasets
 from model.SA_Unet import SA_UNet
-from train_utils.train_and_eval import train_one_epoch, evaluate
+from train_utils.train_and_eval import train_one_epoch, evaluate, create_lr_scheduler
 
 
 class SegmentationPresetTrain:
@@ -115,8 +114,8 @@ def main(args):
     scaler = torch.cuda.amp.GradScaler() if args.amp else None
 
     # 创建学习率更新策略
-    scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[100], gamma=0.1)
-
+    # scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[100], gamma=0.1)
+    scheduler = create_lr_scheduler(optimizer, len(train_loader), args.epochs, warmup=True)
     # (Initialize logging)
     experiment = wandb.init(project='SA_UNet_2022')
 
@@ -138,9 +137,10 @@ def main(args):
     trigger = 0
     best_metric = {"AUC_ROC": 0.5}
     for epoch in range(args.start_epoch, args.epochs + 1):
-        mean_loss = train_one_epoch(model, optimizer, train_loader, device, epoch,
+        mean_loss = train_one_epoch(model, optimizer, train_loader, device, epoch, scheduler,
                                     scaler=scaler)
-        scheduler.step()
+        # drive
+        # scheduler.step()
         lr = optimizer.param_groups[0]["lr"]
 
         experiment.log({
@@ -175,9 +175,11 @@ def main(args):
             torch.save(save_file, "best_model.pth")
             trigger = 0
 
-        if epoch == args.epochs or trigger >= args.early_stop:
+        # 50个epoch不更新AUC_ROC,就退出训练
+        if trigger >= args.early_stop or epoch == args.epochs:
             model_artifact.add_file('best_model.pth')
             experiment.log_artifact(model_artifact)
+            break
 
 
 def parse_args():
@@ -200,7 +202,7 @@ def parse_args():
     parser.add_argument('--resume', default='', help='resume from checkpoint')
     parser.add_argument('--start-epoch', default=1, type=int, metavar='N',
                         help='start epoch')
-    parser.add_argument('--early_stop', default=50, type=int)
+    parser.add_argument('--early_stop', default=35, type=int)
 
     # Mixed precision training parameters
     parser.add_argument("--amp", default=False, type=bool,

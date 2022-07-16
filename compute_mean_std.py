@@ -4,13 +4,8 @@ import numpy as np
 from PIL import Image
 
 
-def compute():
+def compute(img_dir="CHASEDB1/aug/images"):
     img_channels = 3
-    # DRIVE
-    # img_dir = "DRIVE/aug/images"
-
-    # CHaseDB1
-    img_dir = "CHASEDB1/aug/images"
     img_name_list = [i for i in os.listdir(img_dir)]
     cumulative_mean = np.zeros(img_channels)
     cumulative_std = np.zeros(img_channels)
@@ -24,3 +19,10 @@ def compute():
     mean = cumulative_mean / len(img_name_list)
     std = cumulative_std / len(img_name_list)
     return mean, std
+
+
+if __name__ == "__main__":
+    mean, std = compute("CHASEDB1/aug/images")
+    print(mean, std)
+    mean1, std1 = compute("CHASEDB1/test/images")
+    print(mean1, std1)
