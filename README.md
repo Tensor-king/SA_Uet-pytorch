@@ -1,7 +1,11 @@
-# SA_Uet-pytorch
+## model
 
-* test-results:To save the resulting curve
-* compute_mean_std:Normalized input image
+* SA-Unet
+
+## Requirement
+
+* torch--1.10.1
+* wandb:Similar to tensorboard, record the result curve and save it to the cloud
 
 ## Precision
 
@@ -20,4 +24,8 @@
 * My accuracy is higher than that of the author. If the evaluation index is designed incorrectly, please contact me:
   zyf1787594682@163.com
 
+## How to train
+
+* Before training, please pay attention to the learning rate decay measurement, crop_Size, calculation of normalized
+  mean and standard deviation, batch_ Size is 4 and 8
 
