@@ -1,6 +1,9 @@
 import torch
-import torch.nn as nn
 from torch.nn import functional as F
+
+"""
+只有使用dice损失函数才会用到下面代码
+"""
 
 
 def build_target(target: torch.Tensor, num_classes: int = 2, ignore_index: int = -100):

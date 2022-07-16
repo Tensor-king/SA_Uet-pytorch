@@ -1,4 +1,3 @@
-import os
 import torch
 from sklearn.metrics import roc_auc_score
 from torch import nn
@@ -98,8 +97,3 @@ def create_lr_scheduler(optimizer,
             return (1 - (x - warmup_epochs * num_step) / ((epochs - warmup_epochs) * num_step)) ** 0.9
 
     return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=f)
-
-
-if __name__ == "__main__":
-    path = "../DRIVE/aug/images"
-    print(len(os.listdir(path)))

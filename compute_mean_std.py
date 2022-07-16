@@ -1,12 +1,17 @@
-import numpy as np
 import os
+
+import numpy as np
 from PIL import Image
 
 
 def compute():
     img_channels = 3
-    img_dir = "DRIVE/aug/images"
-    img_name_list = [i for i in os.listdir(img_dir) if i.endswith(".tif")]
+    # DRIVE
+    # img_dir = "DRIVE/aug/images"
+
+    # CHaseDB1
+    img_dir = "CHASEDB1/aug/images"
+    img_name_list = [i for i in os.listdir(img_dir)]
     cumulative_mean = np.zeros(img_channels)
     cumulative_std = np.zeros(img_channels)
     for img_name in img_name_list:

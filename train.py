@@ -7,7 +7,7 @@ from torch.optim import lr_scheduler
 
 import compute_mean_std
 import transforms as T
-from datasets import DriveDataset
+from datasets import Chasedb1Datasets
 from model.SA_Unet import SA_UNet
 from train_utils.train_and_eval import train_one_epoch, evaluate
 
@@ -19,6 +19,7 @@ class SegmentationPresetTrain:
         # max_size = int(1.2 * base_size)
         #
         # trans = [T.RandomResize(min_size, max_size)]  # 最小边为base_size
+
         trans = []
         if hflip_prob > 0:
             trans.append(T.RandomHorizontalFlip(hflip_prob))
@@ -47,9 +48,9 @@ class SegmentationPresetEval:
         return self.transforms(img, target)
 
 
-def get_transform(train, mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)):
+def get_transform(train, mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225), flag=True):
     base_size = 565
-    crop_size = 592
+    crop_size = 1008
 
     if train:
         return SegmentationPresetTrain(base_size, crop_size, mean=mean, std=std)
@@ -71,13 +72,23 @@ def main(args):
     # using compute_mean_std.py   自己计算数据集得到的mean和std
     mean, std = compute_mean_std.compute()
 
-    train_dataset = DriveDataset(args.data_path,
-                                 train=True,
-                                 transforms=get_transform(train=True, mean=mean, std=std))
+    # DRIVE
+    # train_dataset = DriveDataset(args.data_path,
+    #                              train=True,
+    #                              transforms=get_transform(train=True, mean=mean, std=std, flag=args.dataset))
+    #
+    # val_dataset = DriveDataset(args.data_path,
+    #                            train=False,
+    #                            transforms=get_transform(train=False, mean=mean, std=std, flag=args.dataset))
 
-    val_dataset = DriveDataset(args.data_path,
-                               train=False,
-                               transforms=get_transform(train=False, mean=mean, std=std))
+    # ChaseDB1
+    train_dataset = Chasedb1Datasets(args.data_path,
+                                     train=True,
+                                     transforms=get_transform(train=True, mean=mean, std=std))
+
+    val_dataset = Chasedb1Datasets(args.data_path,
+                                   train=False,
+                                   transforms=get_transform(train=False, mean=mean, std=std))
 
     num_workers = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])
     train_loader = torch.utils.data.DataLoader(train_dataset,
@@ -172,12 +183,11 @@ def main(args):
 def parse_args():
     import argparse
     parser = argparse.ArgumentParser(description="pytorch SA-UNET training")
-
-    parser.add_argument("--data-path", default="DRIVE", help="DRIVE root")
+    parser.add_argument("--data-path", default="CHASEDB1", help="DRIVE root")
     # exclude background
     parser.add_argument("--num-classes", default=1, type=int)
     parser.add_argument("--device", default="cuda", help="training device")
-    parser.add_argument("-b", "--batch-size", default=8, type=int)
+    parser.add_argument("-b", "--batch-size", default=4, type=int)
     parser.add_argument("--epochs", default=150, type=int, metavar="N",
                         help="number of total epochs to train")
 

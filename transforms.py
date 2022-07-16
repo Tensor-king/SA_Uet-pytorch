@@ -1,10 +1,7 @@
-import os
 import random
 
-import cv2
 import numpy as np
 import torch
-from PIL import Image, ImageEnhance
 from torchvision import transforms as T
 from torchvision.transforms import functional as F
 
@@ -108,104 +105,3 @@ class Normalize(object):
         image = F.normalize(image, mean=self.mean, std=self.std)
         target = (target / 255).long()
         return image, target
-
-
-class RandomRotation2022(object):
-    def __init__(self):
-        self.angle = random.randint(1, 360)
-
-    def __call__(self, image, target, label):
-        image = T.RandomRotation((self.angle, self.angle), resample=Image.BICUBIC)(image)
-        target = T.RandomRotation((self.angle, self.angle), resample=Image.NEAREST)(target)
-        label = T.RandomRotation((self.angle, self.angle), resample=Image.NEAREST)(label)
-        return image, target, label
-
-
-class ColorJitter(object):
-
-    def __call__(self, image):
-        image = T.ColorJitter(brightness=(1, 2), contrast=(
-            1, 2), saturation=(1, 2), hue=(-0.5, 0.5))(image)
-        return image
-
-
-def randomColor(image):
-    random_factor = np.random.randint(0, 31) / 10.
-    color_image = ImageEnhance.Color(image).enhance(random_factor)
-    random_factor = np.random.randint(10, 21) / 10.
-    brightness_image = ImageEnhance.Brightness(color_image).enhance(random_factor)
-    random_factor = np.random.randint(10, 21) / 10.
-    contrast_image = ImageEnhance.Contrast(brightness_image).enhance(random_factor)
-    random_factor = np.random.randint(0, 31) / 10.
-    sharp_image = ImageEnhance.Sharpness(contrast_image).enhance(random_factor)
-    return sharp_image
-
-
-def gaussianNoisy(im, mean, sigma):
-    for _i in range(len(im)):
-        im[_i] += random.gauss(mean, sigma)
-    return im
-
-
-class RandomGaussian(object):
-    def __init__(self, mean=0.2, sigma=0.3):
-        self.mean = mean
-        self.sigma = sigma
-
-    def __call__(self, image):
-        # H,W,C
-        img = np.asarray(image)
-        width, height = img.shape[0], img.shape[1]
-
-        img_r = gaussianNoisy(img[:, :, 0].flatten(), self.mean, self.sigma)
-        img_g = gaussianNoisy(img[:, :, 1].flatten(), self.mean, self.sigma)
-        img_b = gaussianNoisy(img[:, :, 2].flatten(), self.mean, self.sigma)
-        img[:, :, 0] = img_r.reshape([width, height])
-        img[:, :, 1] = img_g.reshape([width, height])
-        img[:, :, 2] = img_b.reshape([width, height])
-        return Image.fromarray(np.uint8(img))
-
-
-if __name__ == "__main__":
-    train_path = r"D:\Deep-Learning\Seg-datasets\DRIVE\training\images"
-    ground_path = r"D:\Deep-Learning\Seg-datasets\DRIVE\training\1st_manual"
-    mask_path = r"D:\Deep-Learning\Seg-datasets\DRIVE\training\mask"
-    # 接下来进行数据增强操作
-    aug_option = {"RandomRandomRotation": RandomRotation2022(), "RandomGaussian": RandomGaussian(),
-                  "ColorJitter": randomColor,
-                  }
-
-    train_path_list = [os.path.join(train_path, i) for i in os.listdir(train_path)]
-    ground_path_list = [os.path.join(ground_path, i) for i in os.listdir(ground_path)]
-    mask_path_list = [os.path.join(mask_path, i) for i in os.listdir(mask_path)]
-
-    if not os.path.exists(os.path.join("Aug_Drive", "training", "images")):
-        os.makedirs(os.path.join("Aug_Drive", "training", "images"))
-    if not os.path.exists(os.path.join("Aug_Drive", "training", "1st_manual")):
-        os.makedirs(os.path.join("Aug_Drive", "training", "1st_manual"))
-    if not os.path.exists(os.path.join("Aug_Drive", "training", "mask")):
-        os.makedirs(os.path.join("Aug_Drive", "training", "mask"))
-
-    count = 0
-    for k in range(3):
-        for i in range(len(train_path_list)):
-            for j in range(4):
-                label = Image.open(ground_path_list[i])
-                mask = Image.open(mask_path_list[i])
-                img = cv2.imread(train_path_list[i])
-                img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGB)
-                img = Image.fromarray(np.uint8(img))
-                if not j == 0:
-                    if k == 0:
-                        transformer = RandomRotation2022()
-                        img, label, mask = transformer(img, label, mask)
-                    elif k == 1:
-                        transformer = RandomGaussian()
-                        img = transformer(img)
-                    elif k == 2:
-                        transformer = randomColor
-                        img = transformer(img)
-                count += 1
-                img.save(os.path.join("Aug_Drive", "training", "images", f"{count}" + "_training.tif"))
-                label.save(os.path.join("Aug_Drive", "training", "1st_manual", f"{count}" + "_manual.gif"))
-                mask.save(os.path.join("Aug_Drive", "training", "mask", f"{count}" + "_training_mask.gif"))

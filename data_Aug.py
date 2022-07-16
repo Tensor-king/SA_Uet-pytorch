@@ -1,7 +1,8 @@
 import logging
-import numpy as np
 import os
 import random
+
+import numpy as np
 from PIL import Image, ImageEnhance, ImageFile
 
 logger = logging.getLogger(__name__)
@@ -15,10 +16,7 @@ class DataAugmentation:
 
     @staticmethod
     def openImage(image):
-        # if image.split(".")[1] == "tif":
-        #     img = cv2.cvtColor(cv2.imread(image), cv2.COLOR_BGR2RGB)
-        #     return Image.fromarray(img)
-        return Image.open(image, mode="r")
+        return Image.open(image)
 
     @staticmethod
     def randomRotation(image, label, mode=Image.BICUBIC):
@@ -116,7 +114,16 @@ def threadOPS(img_path, new_img_path, label_path, new_label_path):
 
 # Please modify the path
 if __name__ == '__main__':
-    threadOPS("DRIVE/training/images",  # set your path of training images
-              "DRIVE/aug/images",
-              "DRIVE/training/1st_manual",  # set your path of training labels
-              "DRIVE/aug/1st_manual")
+    # DRIVE
+    # threadOPS("DRIVE/training/images",  # set your path of training images
+    #           "DRIVE/aug/images",
+    #           "DRIVE/training/1st_manual",  # set your path of training labels
+    #           "DRIVE/aug/1st_manual")
+
+    # CHANSEDB1
+    os.makedirs("CHASEDB1/aug/images")
+    os.makedirs("CHASEDB1/aug/1st_label")
+    threadOPS("CHASEDB1/train/images",  # set your path of training images
+              "CHASEDB1/aug/images",
+              "CHASEDB1/train/1st_label",  # set your path of training labels
+              "CHASEDB1/aug/1st_label")
