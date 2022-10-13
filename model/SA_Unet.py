@@ -103,7 +103,7 @@ class OutConv(nn.Sequential):
     def __init__(self, in_channels, num_classes):
         super(OutConv, self).__init__(
             nn.Conv2d(in_channels, num_classes, kernel_size=1),
-            nn.Sigmoid(),
+#             nn.Sigmoid(),
         )
 
 
