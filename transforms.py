@@ -36,7 +36,8 @@ class RandomResize(object):
 
     def __call__(self, image, target):
         size = random.randint(self.min_size, self.max_size)
-        # 这里size传入的是int类型，所以是将图像的最小边长缩放到size大小
+        # 这里size传入的是int类型，所以是将图像的最小边长缩放到size大小，保持比例大小不变
+        # 默认双线性插值
         image = F.resize(image, size)
         # 这里的interpolation注意下，在torchvision(0.9.0)以后才有InterpolationMode.NEAREST
         # 如果是之前的版本需要使用PIL.Image.NEAREST
@@ -71,8 +72,10 @@ class RandomCrop(object):
         self.size = size
 
     def __call__(self, image, target):
-        image = pad_if_smaller(image, self.size)
-        target = pad_if_smaller(target, self.size)
+        # 如果图像过小，需要padding
+        image = pad_if_smaller(image, self.size, fill=0)
+        target = pad_if_smaller(target, self.size, fill=0)
+        # 以左上角为起点生成的坐标
         crop_params = T.RandomCrop.get_params(image, (self.size, self.size))
         image = F.crop(image, *crop_params)
         target = F.crop(target, *crop_params)
@@ -91,7 +94,7 @@ class CenterCrop(object):
 
 class ToTensor(object):
     def __call__(self, image, target):
-        image = F.to_tensor(image)  # float类型
+        image = F.to_tensor(image).float()  # float类型
         target = torch.as_tensor(np.array(target), dtype=torch.int64)  # long类型
         return image, target
 
