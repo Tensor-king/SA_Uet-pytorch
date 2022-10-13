@@ -11,21 +11,14 @@
 
 | Dataset  |   SE   |   SP   |  ACC   |  AUC   | F1     |
 |----------|:------:|:------:|:------:|:------:|--------|
-| DRIVE    | 0.8234 | 0.9840 | 0.9708 | 0.9872 | 0.8960 |
-| CHASEDB1 | 0.8352 | 0.9885 | 0.9774 | 0.9917 | 0.9138 |
+| DRIVE    | 0.8234 | 0.9840 | 0.9708 | 0.9872 | 0.8221 |
+| CHASEDB1 | 0.8352 | 0.9885 | 0.9774 | 0.9917 | ------ |
 
-## Qusetion
+## Be Careful
 
-* The original author did not use mask, but directly used 1st_label
+* The original author did not use mask, Instead, it crop the image to 592*592, which causes most of its precision to be high, and if you use mask, this network will only achieve average results
 * Data enhancement: the author code generates 3 * 3 * 20=180 pictures, and the author writes 256. I don't know what the
-  situation is
-* For the chasedb1 dataset, I changed the learning rate decay strategy. Using the method adopted in this paper, I
-  can't achieve that accuracy
-* My accuracy is higher than that of the author. If the evaluation index is designed incorrectly, please contact me:
-  zyf1787594682@163.com
+  situation is.
 
-## How to train
 
-* Before training, please pay attention to the learning rate decay measurement, crop_Size, calculation of normalized
-  mean and standard deviation, batch_ Size is 4 and 8
 
