@@ -19,6 +19,6 @@
 * The original author did not use mask, Instead, it crop the image to 592*592, which causes most of its precision to be high, and if you use mask, this network will only achieve average results
 * Data enhancement: the author code generates 3 * 3 * 20=180 pictures, and the author writes 256. I don't know what the
   situation is.
-* Please use the data enhancement script to augment your own dataset, put it in the aug folder, and then train the network. Or contact me and I will send you the enhanced data. zyf1787594682@163.com
+* Please use the data enhancement script to augment your own dataset, put it in the aug folder, and then train the network.
 
 
