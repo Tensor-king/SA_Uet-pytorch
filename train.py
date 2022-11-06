@@ -8,7 +8,7 @@ import wandb
 
 import compute_mean_std
 import transforms as T
-from datasets import DriveDataset, Chasedb1Datasets, StareDataset
+from datasets import DriveDataset, Chasedb1Datasets, StareDataset, MMS_P3_385_385_3_Dataset
 from train_utils.train_and_eval import train_one_epoch, evaluate, create_lr_scheduler
 from model.SA_Unet import SA_UNet
 import torch.backends.cudnn
@@ -57,6 +57,9 @@ def get_transform(train, args, mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.
     elif args.dataset == 'STARE':
         base_size = 605
         crop_size = 512
+    elif args.dataset == 'MMS_P3_385_385_3':
+        base_size = 385
+        crop_size = 385
     else:
         raise Exception("无效的数据集或者数据集字母需要大写")
     if train:
@@ -122,6 +125,14 @@ def main(args):
                                      transforms=get_transform(train=True, args=args, mean=mean, std=std))
 
         val_dataset = StareDataset(args.data_path,
+                                   train=False,
+                                   transforms=get_transform(train=False, args=args, mean=mean, std=std))
+    elif args.dataset == 'MMS_P3_385_385_3':
+        train_dataset = MMS_P3_385_385_3_Dataset(args.data_path,
+                                     train=True,
+                                     transforms=get_transform(train=True, args=args, mean=mean, std=std))
+
+        val_dataset = MMS_P3_385_385_3_Dataset(args.data_path,
                                    train=False,
                                    transforms=get_transform(train=False, args=args, mean=mean, std=std))
     else:

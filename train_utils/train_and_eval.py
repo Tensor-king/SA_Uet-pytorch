@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 import train_utils.disturtd_utils as utils
 from train_utils.dice_cofficient_loss import dice_coeff
-from focal_loss import FocalLoss
+from focal_loss.focal_loss import FocalLoss
 
 
 def reduce_value(value, average=True):
